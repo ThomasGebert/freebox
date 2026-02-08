@@ -34,7 +34,11 @@ cat << HELP
 
 Freebox API CLI
 
+<<<<<<< HEAD
 Usage: $1 [OPTION]
+=======
+Usage: $(basename $0) [OPTIONS]
+>>>>>>> 887060c (Initial release)
 
 Mandatory options:
 A command to execute
