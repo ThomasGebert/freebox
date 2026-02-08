@@ -1,5 +1,9 @@
 # freebox
-CLI for freebox API
+## CLI for freebox API
+Intention is to use the Freebox API from openWRT devices, which normally do not ship with
+Python or any other sophisticated programming language. 
+
+Therefore good old shell code. =0)
 
 ```
 Freebox API CLI
