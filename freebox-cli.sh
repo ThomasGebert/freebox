@@ -41,6 +41,7 @@ A command to execute
   -c|--commands COMMANDS        	The command(s) to execute.
 	                                Possible commands are:
 					- GET
+                                        - PUT
 					- POST
 					- get_dhcp_dynamic_lease_names
 					- get_dhcp_static_lease_names
@@ -55,7 +56,7 @@ A command to execute
 
                                 	Multiple commands can be comma separated
 	                                  track_app_token,auth
-  -p|--api-path		API_PATH	API path to GET/POST. Without the /api/v15/ part.
+  -p|--api-path		API_PATH	API path to GET/PUT/POST. Without the /api/v15/ part.
                                         See freebox documentation for details
 
 Autentication can be passed directly via:
@@ -218,6 +219,7 @@ GET() {
   fi
 }
 
+
 set_session_token() {
   SESSION_TOKEN_INFO=$(get_session_token)
   SESSION_TOKEN_SUCCESS=$(echo ${SESSION_TOKEN_INFO} | ${JQ} -r .success)
@@ -266,7 +268,7 @@ while :; do
             APP_TOKEN="$2"
             shift
         else
-            die 'ERROR: "-c|--command" requires a non-empty option argument.'
+            die 'ERROR: "ac|--app-token" requires a non-empty option argument.'
         fi
         ;;
     -A|--auth-file)
@@ -274,7 +276,7 @@ while :; do
             AUTH_FILE="$2"
             shift
         else
-            die 'ERROR: "-c|--command" requires a non-empty option argument.'
+            die 'ERROR: "-A|--auth-file" requires a non-empty option argument.'
         fi
         ;;
     -c|--command)
@@ -298,15 +300,7 @@ while :; do
             APP_ID="$2"
             shift
         else
-            die 'ERROR: "-v|--volume" requires a non-empty option argument.'
-        fi
-        ;;
-    -t|--track-id)
-        if [ "$2" ]; then
-            TRACK_ID="$2"
-            shift
-        else
-            die 'ERROR: "-v|--volume" requires a non-empty option argument.'
+            die 'ERROR: "-i|--app-id" requires a non-empty option argument.'
         fi
         ;;
     -o|--compact)
@@ -318,7 +312,15 @@ while :; do
             API_PATH="$2"
             shift
         else
-            die 'ERROR: "-v|--volume" requires a non-empty option argument.'
+            die 'ERROR: "-c|--compact" requires a non-empty option argument.'
+        fi
+        ;;
+    -P|--json-content)
+        if [ "$2" ]; then
+            JSON_CONTENT="$2"
+            shift
+        else
+            die 'ERROR: "-P|--json-content" requires a non-empty option argument.'
         fi
         ;;
     -s|--session-token)
@@ -326,7 +328,15 @@ while :; do
             SESSION_TOKEN="$2"
             shift
         else
-            die 'ERROR: "-v|--volume" requires a non-empty option argument.'
+            die 'ERROR: "-s|--session-token" requires a non-empty option argument.'
+        fi
+        ;;
+    -t|--track-id)
+        if [ "$2" ]; then
+            TRACK_ID="$2"
+            shift
+        else
+            die 'ERROR: "-t|--track-id" requires a non-empty option argument.'
         fi
         ;;
     --)              # End of all options.
