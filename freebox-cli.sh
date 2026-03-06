@@ -58,6 +58,7 @@ A command to execute
 	                                  track_app_token,auth
   -p|--api-path		API_PATH	API path to GET/PUT/POST. Without the /api/v15/ part.
                                         See freebox documentation for details
+  -P|--json-content     JSON_CONTENT    JSON to PUT/POST
 
 Autentication can be passed directly via:
   -i|--app-id		APP_ID		App id used during registration
@@ -219,6 +220,37 @@ GET() {
   fi
 }
 
+
+PUT() {
+  if [ "${API_PATH}" == "" ]; then
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "No API path provided" '.result.status += $status'
+    return 1 
+  fi
+
+  if [ "${JSON_CONTENT}" == "" ]; then
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "No JSON content to PUT provided." '.result.status += $status'
+    return 1 
+  fi
+
+  if [ "${SESSION_TOKEN}" == "" ]; then
+    set_session_token
+  fi
+
+  PUT_INFO=$(${CURL_CMD} -X PUT "${JSON_CONTENT}" -H "X-Fbx-App-Auth:${SESSION_TOKEN}" ${FREEBOX_BASE}/${API_PATH})
+  ERROR_CODE=$(echo "${PUT_INFO}" | jq -r .error_code)
+  if ! PUT_INFO_SUCCESS=$(echo "${PUT_INFO}" | jq -r .success) 2> /dev/null; then
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Could not curl ${FREEBOX_BASE}/${API_PATH}" '.result.status += $status'
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Could not curl ${FREEBOX_BASE}/${API_PATH}" --arg error_code "${ERROR_CODE}" '.result.status += $status | .result.error_code += $error_code'
+    return 1
+  fi
+
+  if [ "${PUT_INFO_SUCCESS}" == "true" ]; then
+    echo "${PUT_INFO}" | ${JQ}
+  else
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg error_code "${ERROR_CODE}" --arg status "Not able to PUT ${FREEBOX_BASE}/${API_PATH}" '.result.status += $status | .result.error_code += $error_code'
+    return 1
+  fi
+}
 
 set_session_token() {
   SESSION_TOKEN_INFO=$(get_session_token)
