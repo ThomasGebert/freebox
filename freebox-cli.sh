@@ -43,6 +43,7 @@ A command to execute
 					- GET
                                         - PUT
 					- POST
+					- DELETE
 					- get_dhcp_dynamic_lease_names
 					- get_dhcp_static_lease_names
 
@@ -56,7 +57,7 @@ A command to execute
 
                                 	Multiple commands can be comma separated
 	                                  track_app_token,auth
-  -p|--api-path		API_PATH	API path to GET/PUT/POST. Without the /api/v15/ part.
+  -p|--api-path		API_PATH	API path to GET/PUT/POST/DELETE. Without the /api/v15/ part.
                                         See freebox documentation for details
   -P|--json-content     JSON_CONTENT    JSON to PUT/POST
 
@@ -207,6 +208,7 @@ GET() {
   fi
 
   GET_INFO=$(${CURL_CMD} -H "X-Fbx-App-Auth:${SESSION_TOKEN}" ${FREEBOX_BASE}/${API_PATH})
+  ERROR_CODE=$(echo "${GET_INFO}" | jq -r .error_code)
   if ! GET_INFO_SUCCESS=$(echo "${GET_INFO}" | jq -r .success) 2> /dev/null; then
     echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Could not curl ${FREEBOX_BASE}/${API_PATH}" '.result.status += $status'
     return 1
@@ -215,7 +217,7 @@ GET() {
   if [ "${GET_INFO_SUCCESS}" == "true" ]; then
     echo "${GET_INFO}" | ${JQ}
   else
-    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Not able to get ${FREEBOX_BASE}/${API_PATH}" '.result.status += $status'
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg error_code "${ERROR_CODE}" --arg status "Not able to GET ${FREEBOX_BASE}/${API_PATH}" '.result.status += $status | .result.error_code += $error_code'
     return 1
   fi
 }
@@ -236,11 +238,10 @@ PUT() {
     set_session_token
   fi
 
-  PUT_INFO=$(${CURL_CMD} -X PUT "${JSON_CONTENT}" -H "X-Fbx-App-Auth:${SESSION_TOKEN}" ${FREEBOX_BASE}/${API_PATH})
+  PUT_INFO=$(${CURL_CMD} -X PUT --data "${JSON_CONTENT}" -H "X-Fbx-App-Auth:${SESSION_TOKEN}" ${FREEBOX_BASE}/${API_PATH})
   ERROR_CODE=$(echo "${PUT_INFO}" | jq -r .error_code)
   if ! PUT_INFO_SUCCESS=$(echo "${PUT_INFO}" | jq -r .success) 2> /dev/null; then
     echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Could not curl ${FREEBOX_BASE}/${API_PATH}" '.result.status += $status'
-    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Could not curl ${FREEBOX_BASE}/${API_PATH}" --arg error_code "${ERROR_CODE}" '.result.status += $status | .result.error_code += $error_code'
     return 1
   fi
 
@@ -248,6 +249,62 @@ PUT() {
     echo "${PUT_INFO}" | ${JQ}
   else
     echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg error_code "${ERROR_CODE}" --arg status "Not able to PUT ${FREEBOX_BASE}/${API_PATH}" '.result.status += $status | .result.error_code += $error_code'
+    return 1
+  fi
+}
+
+
+POST() {
+  if [ "${API_PATH}" == "" ]; then
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "No API path provided" '.result.status += $status'
+    return 1 
+  fi
+
+  if [ "${JSON_CONTENT}" == "" ]; then
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "No JSON content to POST provided." '.result.status += $status'
+    return 1 
+  fi
+
+  if [ "${SESSION_TOKEN}" == "" ]; then
+    set_session_token
+  fi
+
+  POST_INFO=$(${CURL_CMD} -X POST --data "${JSON_CONTENT}" -H "X-Fbx-App-Auth:${SESSION_TOKEN}" ${FREEBOX_BASE}/${API_PATH})
+  ERROR_CODE=$(echo "${POST_INFO}" | jq -r .error_code)
+  if ! POST_INFO_SUCCESS=$(echo "${POST_INFO}" | jq -r .success) 2> /dev/null; then
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Could not curl ${FREEBOX_BASE}/${API_PATH}" '.result.status += $status'
+    return 1
+  fi
+
+  if [ "${POST_INFO_SUCCESS}" == "true" ]; then
+    echo "${POST_INFO}" | ${JQ}
+  else
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg error_code "${ERROR_CODE}" --arg status "Not able to POST ${FREEBOX_BASE}/${API_PATH}" '.result.status += $status | .result.error_code += $error_code'
+    return 1
+  fi
+}
+
+DELETE() {
+  if [ "${API_PATH}" == "" ]; then
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "No API path provided" '.result.status += $status'
+    return 1 
+  fi
+
+  if [ "${SESSION_TOKEN}" == "" ]; then
+    set_session_token
+  fi
+
+  DELETE_INFO=$(${CURL_CMD} -X DELETE -H "X-Fbx-App-Auth:${SESSION_TOKEN}" ${FREEBOX_BASE}/${API_PATH})
+  ERROR_CODE=$(echo "${DELETE_INFO}" | jq -r .error_code)
+  if ! DELETE_INFO_SUCCESS=$(echo "${DELETE_INFO}" | jq -r .success) 2> /dev/null; then
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Could not curl ${FREEBOX_BASE}/${API_PATH}" '.result.status += $status'
+    return 1
+  fi
+
+  if [ "${DELETE_INFO_SUCCESS}" == "true" ]; then
+    echo "${DELETE_INFO}" | ${JQ}
+  else
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg error_code "${ERROR_CODE}" --arg status "Not able to DELETE ${FREEBOX_BASE}/${API_PATH}" '.result.status += $status | .result.error_code += $error_code'
     return 1
   fi
 }
