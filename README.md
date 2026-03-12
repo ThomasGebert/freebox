@@ -15,7 +15,9 @@ A command to execute
   -c|--commands COMMANDS        	The command(s) to execute.
 	                                Possible commands are:
 					- GET
+                                        - PUT
 					- POST
+					- DELETE
 					- get_dhcp_dynamic_lease_names
 					- get_dhcp_static_lease_names
 
@@ -29,8 +31,9 @@ A command to execute
 
                                 	Multiple commands can be comma separated
 	                                  track_app_token,auth
-  -p|--api-path		API_PATH	API path to GET/POST. Without the /api/v15/ part.
+  -p|--api-path		API_PATH	API path to GET/PUT/POST/DELETE. Without the /api/v15/ part.
                                         See freebox documentation for details
+  -P|--json-content     JSON_CONTENT    JSON to PUT/POST
 
 Autentication can be passed directly via:
   -i|--app-id		APP_ID		App id used during registration
