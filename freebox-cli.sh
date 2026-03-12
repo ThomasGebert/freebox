@@ -40,7 +40,7 @@ Usage: $(basename $0) [OPTIONS]
 
 Mandatory options:
 A command to execute
-  -c|--commands COMMANDS        	The command(s) to execute.
+  -c|--commands         COMMANDS        The command(s) to execute.
 	                                Possible commands are:
 					- GET
                                         - PUT
