@@ -1,4 +1,8 @@
 # freebox
+
+- [CLI for freebox API](#CLIforfreeboxAPI)
+- [Authorization](#Authorization)
+
 ## CLI for freebox API
 Intention is to use the Freebox API from openWRT devices, which normally do not ship with
 Python or any other sophisticated programming language. 
@@ -49,3 +53,36 @@ Optional:
   -s|--session-token    SESSION_TOKEN	Session token for authentication. 
                                         Mainly useful for debugging
 ```
+
+## Authorization
+First you need a login for the API which contains an `app_id` and an `app_token`. Keep this information secure.
+
+Following an example of the JSON and the POST address to request your login. Once the request was made you have to go to your Freebox to accept the request on the screen.
+```
+POST /api/v8/login/authorize/ HTTP/1.1
+
+{
+   "app_id": "fr.freebox.testapp",
+   "app_name": "Test App",
+   "app_version": "0.0.7",
+   "device_name": "Pc de Xavier"
+}
+```
+On success you get a token similar to the one below.
+```
+{
+   "success": true,
+   "result": {
+      "app_token": "dyNYgfK0Ya6FWGqq83sBHa7TwzWo+pg4fDFUJHShcjVYzTfaRrZzm93p7OTAfH/0",
+      "track_id": 42
+   }
+}
+```
+With the `app_id` and the `app_token` one can create the `auth-file` which looks as follows.
+```
+{
+  "app_id": "fr.freebox.testapp",
+  "app_token":"dyNYgfK0Ya6FWGqq83sBHa7TwzWo+pg4fDFUJHShcjVYzTfaRrZzm93p7OTAfH/0"
+}
+```
+It is a good idea to keep all the information involved so far to keep track of different authentications and to query status with e.g. the `track_id`.
