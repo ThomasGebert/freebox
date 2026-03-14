@@ -1,7 +1,7 @@
 # freebox
 
-- [CLI for freebox API](#CLIforfreeboxAPI)
-- [Authorization](#Authorization)
+- [CLI for freebox API](#cli-for-freebox-api)
+- [Authorization](#authorization)
 
 ## CLI for freebox API
 Intention is to use the Freebox API from openWRT devices, which normally do not ship with
@@ -55,6 +55,8 @@ Optional:
 ```
 
 ## Authorization
+A detailed description can be found in the API developer documentation which is available on every Freebox.
+
 First you need a login for the API which contains an `app_id` and an `app_token`. Keep this information secure.
 
 Following an example of the JSON and the POST address to request your login. Once the request was made you have to go to your Freebox to accept the request on the screen.
