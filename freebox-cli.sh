@@ -121,7 +121,7 @@ configure_authentication() {
 get_challenge() {
   LOGIN_INFO=$(${CURL_CMD} ${FREEBOX_BASE}/login)
 
-  if ! LOGIN_INFO_SUCCESS=$(echo "${LOGIN_INFO}" | jq --raw-output '.success') 2> /dev/null; then
+  if ! LOGIN_INFO_SUCCESS=$(echo "${LOGIN_INFO}" | ${JQ} --raw-output '.success' 2> /dev/null); then
     echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Not able to get challange at ${FREEBOX_ADDRESS}" '.result.status += $status'
     return 1
   fi
@@ -187,10 +187,8 @@ get_session_token() {
     echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Not able to get session token for ${APP_ID} at ${FREEBOX_ADDRESS}" '.result.status += $status'
     return 1
   fi
-  echo "${SESSION_TOKEN_INFO}"
-  exit 1
 
-  if ! SESSION_TOKEN_SUCCESS=$(echo "${SESSION_TOKEN_INFO}" | jq --raw-output .success) 2> /dev/null; then
+  if ! SESSION_TOKEN_SUCCESS=$(echo "${SESSION_TOKEN_INFO}" | ${JQ} --raw-output .success) 2> /dev/null; then
     echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Not able to get session token for ${APP_ID} at ${FREEBOX_ADDRESS}" '.result.status += $status'
     return 1
   fi
@@ -252,8 +250,8 @@ _CURL_WITHOUT_DATA() {
 
   FREEBOX_URL="${FREEBOX_BASE}${API_PATH}"
   CURL_INFO=$(${CURL_CMD} --request "${REQUEST}" --header "X-Fbx-App-Auth:${SESSION_TOKEN}" "${FREEBOX_URL}")
-  ERROR_CODE=$(echo "${CURL_INFO}" | jq --raw-output .error_code)
-  if ! GET_CURL_SUCCESS=$(echo "${CURL_INFO}" | jq --raw-output .success) 2> /dev/null; then
+  ERROR_CODE=$(echo "${CURL_INFO}" | ${JQ} --raw-output .error_code)
+  if ! GET_CURL_SUCCESS=$(echo "${CURL_INFO}" | ${JQ} --raw-output .success) 2> /dev/null; then
     echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Could not curl ${FREEBOX_URL}" '.result.status += $status'
     return 1
   fi
@@ -297,8 +295,8 @@ _CURL_WITH_DATA() {
 
   FREEBOX_URL="${FREEBOX_BASE}${API_PATH}"
   CURL_INFO=$(${CURL_CMD} --request "${REQUEST}" --data "${DATA}" --header "X-Fbx-App-Auth:${SESSION_TOKEN}" "${FREEBOX_URL}")
-  ERROR_CODE=$(echo "${CURL_INFO}" | jq --raw-output .error_code)
-  if ! CURL_INFO_SUCCESS=$(echo "${CURL_INFO}" | jq --raw-output .success) 2> /dev/null; then
+  ERROR_CODE=$(echo "${CURL_INFO}" | ${JQ} --raw-output .error_code)
+  if ! CURL_INFO_SUCCESS=$(echo "${CURL_INFO}" | ${JQ} --raw-output .success) 2> /dev/null; then
     echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Could not curl ${FREEBOX_URL}" '.result.status += $status'
     return 1
   fi
@@ -366,7 +364,7 @@ while :; do
         fi
         ;;
     -o|--compact)
-        JQ="jq --compact-output"
+        JQ="${JQ} --compact-output"
         shift
         ;;
     -p|--api-path)
