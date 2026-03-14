@@ -30,7 +30,7 @@ TOOLS_NEEDED="${CURL} ${JQ} ${HMAC_MD5}"
 
 ############################################################
 # Our help function
-############################################################
+############################################################ 
 show_help() {
 cat << HELP
 
@@ -85,12 +85,24 @@ exit 0
 # check the precense of the tools needed
 ############################################################
 check_tools() {
+  TOOLS_MISSING=""
   for TOOL in ${TOOLS_NEEDED}; do
     if ! type "${TOOL}" &> /dev/null; then
-      echo "${TOOL} is missing" 
-      return 1 
+      TOOLS_MISSING="${TOOLS_MISSING} ${TOOL}"
     fi
   done
+
+  if [ ! "${TOOLS_MISSING}" == "" ]; then
+cat << TOOLS
+{
+  "success": false,
+  "result": {
+    "status": "Tools missing: ${TOOLS_MISSING}"
+  }
+}
+TOOLS
+    return 1
+  fi
 }
 
 ############################################################
