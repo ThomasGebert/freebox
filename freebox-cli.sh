@@ -211,6 +211,7 @@ set_session_token() {
     return 0
   else
     SESSION_TOKEN=""
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Not able to set SESSION_TOKEN for ${APP_ID} at ${FREEBOX_ADDRESS}" '.result.status += $status'
     return 1
   fi
 }
@@ -431,7 +432,6 @@ if ! configure_authentication; then
 fi
 
 if ! set_session_token; then
-  echo "Could not get session token"
   exit 1
 fi
 
