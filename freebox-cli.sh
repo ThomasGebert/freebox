@@ -473,6 +473,10 @@ fi
 
 COMMANDS=$(echo ${COMMANDS} | tr ',' ' ')
 for COMMAND in ${COMMANDS}; do
-  ${COMMAND}
+  if type ${COMMAND} &> /dev/null; then
+    ${COMMAND}
+  else
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Command ${COMMAND} not known" '.result.status += $status'
+  fi
 done
 
