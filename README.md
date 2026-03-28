@@ -38,6 +38,7 @@ A command to execute
   -p|--api-path		    API_PATH	    API path to GET/PUT/POST/DELETE. Without the /api/v15/ part.
                                             See freebox documentation for details
   -P|--json-content     JSON_CONTENT    JSON to PUT/POST
+                                        Use a preceding @ to specify a .json file instead of inline json
 
 Autentication can be passed directly via:
   -i|--app-id		    APP_ID		    App id used during registration
