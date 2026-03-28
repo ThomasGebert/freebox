@@ -82,7 +82,7 @@ exit 0
 }
 
 ############################################################
-# check the precense of the tools needed
+# check the presence of the tools needed
 ############################################################
 check_tools() {
   TOOLS_MISSING=""
@@ -109,25 +109,29 @@ TOOLS
 # high level functions for Freebox
 ############################################################
 configure_authentication() {
-  if [ -f "${AUTH_FILE}" ]; then
-    APP_ID=$(${JQ} --raw-output .app_id < "${AUTH_FILE}") 2> /dev/null
-    APP_TOKEN=$(${JQ} --raw-output .app_token < "${AUTH_FILE}") 2> /dev/null
-
-    if [ "${APP_ID}" == "null" ]; then
-      echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Cannot read app_id from ${AUTH_FILE}" '.result.status += $status'
+  # Set environment variables APP_ID and APP_TOKEN from .json file if provided.
+  # Then check if both variables are set, either from .json file or from command line.
+  if [ ! "${AUTH_FILE}" == "" ]; then
+    if [ -f "${AUTH_FILE}" ]; then
+      APP_ID=$(${JQ} --raw-output .app_id < "${AUTH_FILE}") 2> /dev/null
+      APP_TOKEN=$(${JQ} --raw-output .app_token < "${AUTH_FILE}") 2> /dev/null
+    else
+      echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Provided authentication file missing: ${AUTH_FILE}" '.result.status += $status'
       return 1
     fi
+  fi
 
-    if [ "${APP_TOKEN}" == "null" ]; then
-      echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Cannot read app_token from ${AUTH_FILE}" '.result.status += $status'
-      return 1
-    fi
-
-    return 0
-  else
-    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Provided authentication file missing: ${AUTH_FILE}" '.result.status += $status'
+  if [ "${APP_ID}" == "null" ] || [ "${APP_ID}" == "" ]; then
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "APP_ID not provided." '.result.status += $status'
     return 1
   fi
+
+  if [ "${APP_TOKEN}" == "null" ] || [ "${APP_TOKEN}" == "" ]; then
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "APP_TOKEN not provided." '.result.status += $status'
+    return 1
+  fi
+
+  return 0
 }
 
 get_challenge() {
