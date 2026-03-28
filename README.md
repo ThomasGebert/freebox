@@ -36,7 +36,7 @@ A command to execute
                                         Multiple commands can be comma separated
 	                                      track_app_token,auth
   -p|--api-path		    API_PATH	    API path to GET/PUT/POST/DELETE. Without the /api/v15/ part.
-                                            See freebox documentation for details
+                                        See freebox documentation for details
   -P|--json-content     JSON_CONTENT    JSON to PUT/POST
                                         Use a preceding @ to specify a .json file instead of inline json
 
