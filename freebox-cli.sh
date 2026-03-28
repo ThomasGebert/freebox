@@ -135,6 +135,7 @@ configure_authentication() {
 }
 
 get_challenge() {
+  # Get the challenge from Freebox which is needed to calculate the session password 
   LOGIN_INFO=$(${CURL_CMD} ${FREEBOX_BASE}/login)
 
   if ! LOGIN_INFO_SUCCESS=$(echo "${LOGIN_INFO}" | ${JQ} --raw-output '.success' 2> /dev/null); then
@@ -151,14 +152,17 @@ get_challenge() {
 }
 
 get_dhcp_dynamic_lease_names() {
+  # List all dynamic DHCP leases
   GET "/dhcp/dynamic_lease"
 }
 
 get_dhcp_static_lease_names() {
+  # List all static DHCP leases
   GET "/dhcp/static_lease"
 }
 
 get_password() {
+  # Provide the password needed to create a session token.
   if [ "${APP_TOKEN}" == "" ]; then
     echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "No app token provided" '.result.status += $status'
     return 1 
@@ -182,6 +186,7 @@ get_password() {
 }
 
 get_session_token() {
+  # Provide a session token
   if [ "${APP_ID}" == "" ]; then
     echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "No app_id provided" '.result.status += $status'
     return 1 
@@ -198,8 +203,7 @@ get_session_token() {
   
   SESSION_REQUEST=$(echo "{}" | ${JQ} --compact-output --arg app_id "${APP_ID}" --arg password "${PASSWORD}" '. +{app_id: $app_id, password: $password}')
 
-  API_PATH="/login/session"
-  if ! SESSION_TOKEN_INFO=$(POST "${SESSION_REQUEST}"); then
+  if ! SESSION_TOKEN_INFO=$(POST "/login/session" "${SESSION_REQUEST}"); then
     echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "Not able to get session token for ${APP_ID} at ${FREEBOX_ADDRESS}" '.result.status += $status'
     return 1
   fi
@@ -219,6 +223,7 @@ get_session_token() {
 }
 
 set_session_token() {
+  # Receive a session token configure the environment for use
   SESSION_TOKEN_INFO=$(get_session_token)
   SESSION_TOKEN_SUCCESS=$(echo ${SESSION_TOKEN_INFO} | ${JQ} --raw-output .success)
 
@@ -233,6 +238,7 @@ set_session_token() {
 }
 
 track_app_token() {
+  # Check if a track ID (numeric) is granted or not
   if [ "${TRACK_ID}" == "" ]; then
     echo "TRACK_ID is empty."
     exit 1
@@ -250,14 +256,20 @@ track_app_token() {
 # CURL functions without data payload
 ############################################################
 DELETE() {
+  # Use API_PATH as default if nothing is passed to the function
   _CURL_WITHOUT_DATA "DELETE" "${1:-$API_PATH}"
 }
 
 GET() {
+  # Use API_PATH as default if nothing is passed to the function
   _CURL_WITHOUT_DATA "GET" "${1:-$API_PATH}" 
 }
 
 _CURL_WITHOUT_DATA() {
+  # Generic CURL function for actions that do not need to send data
+  # The function expects two arguments
+  #  - the request like GET or DELETE
+  #  - the path to operate on
   REQUEST="${1}"
   API_PATH="${2}"
   if [ "${API_PATH}" == "" ]; then
@@ -286,27 +298,35 @@ _CURL_WITHOUT_DATA() {
 # CURL functions with data payload
 ############################################################
 PUT() {
-  DATA="${1:-$JSON_CONTENT}"
-  _CURL_WITH_DATA "PUT" "${DATA}"
+  # Use API_PATH as default if nothing is passed to the function
+  # Use JSON_CONTENT as default if nothing is passed to the function
+  _CURL_WITH_DATA "PUT" "${1:-$API_PATH}" "${2:-$JSON_CONTENT}"
   return $?
 }
 
 POST() {
-  DATA="${1:-$JSON_CONTENT}"
-  _CURL_WITH_DATA "POST" "${DATA}"
+  # Use API_PATH as default if nothing is passed to the function
+  # Use JSON_CONTENT as default if nothing is passed to the function
+  _CURL_WITH_DATA "POST" "${1:-$API_PATH}" "${2:-$JSON_CONTENT}"
   return $?
 }
 
 _CURL_WITH_DATA() {
+  # Generic CURL function for actions that do need to send data
+  # The function expects three arguments
+  #  - the request like PUT or POST
+  #  - the path to operate on
+  #  - the data to send
   REQUEST="${1}"
-  DATA="${2}"
+  API_PATH="${2}"
+  DATA="${3}"
   if [ "${API_PATH}" == "" ]; then
     echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "No API path provided" '.result.status += $status'
     return 1 
   fi
 
   if [ "${DATA}" == "" ]; then
-    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "No JSON content to PUT provided." '.result.status += $status'
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg status "No JSON content to ${REQUEST} provided." '.result.status += $status'
     return 1 
   fi
 
@@ -321,7 +341,7 @@ _CURL_WITH_DATA() {
   if [ "${CURL_INFO_SUCCESS}" == "true" ]; then
     echo "${CURL_INFO}" | ${JQ}
   else
-    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg error_code "${ERROR_CODE}" --arg status "Not able to PUT ${FREEBOX_URL}" '.result.status += $status | .result.error_code += $error_code'
+    echo "${JSON_FAILED}" | ${JQ} ${JQ_COMPACT} --arg error_code "${ERROR_CODE}" --arg status "Not able to ${REQUEST} ${FREEBOX_URL}" '.result.status += $status | .result.error_code += $error_code'
     return 1
   fi
 }
